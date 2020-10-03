@@ -91,37 +91,44 @@ def convert_size(num):
     return '{:3.2f} YiB'.format(num)
 
 
-# convert seconds to next unit
-def convert_time(seconds):
-    # humanfriendly.format_timespan(seconds)
-    days, remainder = divmod(seconds, 86400)
-    hours, remainder = divmod(remainder, 3600)
-    minutes, seconds = divmod(remainder, 60)
+def convert_time(seconds: int) -> str:
+    """
+    convert seconds to format sting
+    @param seconds: seconds
+    @return: format_time_string: formated string
+    """
+    timeunits = [
+        ('day',         60*60*24),
+        ('hour',        60*60),
+        ('minute',      60),
+        ('second',      1)
+    ]
 
-    ret = 'elapsed time: '
+    format_time_string_list = []
+    for timeunit, timeunit_seconds in timeunits:
+        if seconds >= timeunit_seconds:
+            timeunit_value, seconds = divmod(seconds, timeunit_seconds)
+            has_s = 's' if is_plural_time(timeunit_value) else ''
+            format_time_string_list.append('%s %s%s' % (timeunit_value, timeunit, has_s))
 
-    if days:
-        ret += f'{days} days' if days > 1 else '1 day'
-        if hours:
-            ret += f', {hours} hours' if hours > 1 else ', 1 hour'
-            if minutes:
-                ret += f', {minutes} minutes' if minutes > 1 else ', 1 minute'
-                if seconds:
-                    ret += f' and {seconds} seconds' if seconds > 1 else ' and 1 second'
-    elif hours:
-        ret += f'{hours} hours' if hours > 1 else '1 hour'
-        if minutes:
-            ret += f', {minutes} minutes' if minutes > 1 else ', 1 minute'
-            if seconds:
-                ret += f' and {seconds} seconds' if seconds > 1 else ' and 1 second'
-    elif minutes:
-        ret += f'{minutes} minutes' if minutes > 1 else '1 minute'
-        if seconds:
-            ret += f' and {seconds} seconds' if seconds > 1 else ' and 1 second'
+    if len(format_time_string_list) >= 2:
+        format_time_string = 'elapsed time: ' + ', '.join(format_time_string_list[:-1]) + ' and ' + str(format_time_string_list[-1])
     else:
-        ret += f'{seconds} seconds' if seconds > 1 else '1 second'
+        format_time_string = 'elapsed time: ' + str(format_time_string_list[0])
 
-    return ret
+    return format_time_string
+
+
+def is_plural_time(timeunit_value: int) -> bool:
+    """
+    Check ich timeunit_value needs plural timeunit format.
+    @param timeunit_value: value timeunite
+    @return: True or False
+    """
+    if timeunit_value > 1:
+        return True
+    else:
+        return False
 
 
 # size of a specific path including all subdirectories
